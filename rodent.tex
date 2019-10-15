@@ -1,0 +1,72 @@
+\documentclass{standalone}
+\usepackage{bm}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathmorphing, shapes.misc, calc}
+
+\definecolor{mLightBrown}{HTML}{EB811B}
+\definecolor{mLightGreen}{HTML}{14B03D}
+
+\begin{document}
+
+\def\layersep{2.6cm}
+\begin{tikzpicture}[shorten >=1pt,->,draw=black!50, node distance=\layersep]
+  \tikzstyle{every pin edge}=[<-,shorten <=1pt]
+  \tikzstyle{neuron}=[circle,fill=black!25,minimum size=17pt,inner sep=0pt]
+  \tikzstyle{input neuron}=[neuron, fill=gray];
+  \tikzstyle{output neuron}=[neuron, fill=gray];
+  \tikzstyle{hidden neuron}=[neuron, fill=mLightBrown];
+  \tikzstyle{annot} = [text width=4em, text centered]
+
+  % Draw the hidden layer nodes
+  \node[hidden neuron] (H-1) at (\layersep,-2cm) {$\bm W$};
+  \node[hidden neuron] (H-2) at (\layersep,-3cm) {$\bm \xi$};
+  \node[hidden neuron] (H-3) at (\layersep,-4cm) {$\bm b$};
+
+  % Draw the output layer node
+  \foreach \name / \y in {1,...,5}
+      \node[output neuron] (O-\name) at (\layersep*2,-\y cm) {};
+
+  % draw and connect decoder
+  \node[draw, ultra thick, rotate=90, rounded corners=8, minimum height=1.1cm, minimum width=3.5cm]
+      (odesolve) at  (\layersep+\layersep/2, -3) {ODE solver $\psi$};
+  \foreach \name / \y in {1,...,3}
+      \path (H-\name) edge (odesolve);
+  \foreach \dest in {1,...,5}
+      \path (odesolve) edge (O-\dest);
+
+  % Annotate the last layer
+  \node[above of=O-3] (pxz) {$\bm x = \psi(\bm z) + \sigma_x$};
+
+  % output lines
+  \draw[-,dotted, very thick, decoration={snake, segment length=0.32cm, amplitude=0.6cm}, decorate]
+    (\layersep*2+0.5cm, -1.5) -- (\layersep*2+2cm, -1.5);
+  \draw[-,dotted, very thick, decoration={snake, segment length=1.3cm, amplitude=0.6cm}, decorate]
+    (\layersep*2+0.5cm, -3) -- (\layersep*2+2cm, -3);
+  \draw[-,dotted, very thick, decoration={snake, segment length=0.7cm, amplitude=0.6cm}, decorate]
+    (\layersep*2+0.5cm, -4.5) -- (\layersep*2+2cm, -4.5);
+
+  % Draw the input layer nodes
+  \foreach \name / \y in {1,...,5}
+  % This is the same as writing \foreach \name / \y in {1/1,2/2,3/3,4/4}
+    \node[input neuron] (I-\name) at (0,-\y) {};
+
+  % Connect every node in the input layer with every node in the
+  % hidden layer.
+  \foreach \source in {1,...,5}
+      \foreach \dest in {1,...,3}
+          \path (I-\source) edge (H-\dest);
+
+  \draw[-, very thick, decoration={snake, segment length=0.32cm, amplitude=0.6cm}, decorate]
+    (-2cm, -1.5) -- (-0.5cm, -1.5);
+  \draw[-, very thick, decoration={snake, segment length=1.3cm, amplitude=0.6cm}, decorate]
+    (-2cm, -3) -- (-0.5cm, -3);
+  \draw[-, very thick, decoration={snake, segment length=0.7cm, amplitude=0.6cm}, decorate]
+    (-2cm, -4.5) -- (-0.5cm, -4.5);
+
+  \node[above of=I-3] (pzx) {$\bm z = \phi_\theta(\bm x) + \bm \sigma_z$};
+  \node[annot, below of=H-1] (pzx) {$\mathcal{N}(0, \lambda_z)$};
+\end{tikzpicture}
+
+
+\end{document}
