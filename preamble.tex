@@ -1,0 +1,106 @@
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathmorphing, shapes.misc, calc}
+\usepackage{pgfplots}
+\usepackage{pgfpages}
+\usepackage{xcolor}
+\usepackage{bm}
+
+
+\usefonttheme{professionalfonts}%requiredformathspec
+\usepackage[charter]{mathdesign}
+
+% ubuntu fix for fira font...
+%\usepackage{amsmath}
+%\usepackage[no-math]{fontspec}
+%\usepackage[charter]{mathdesign}
+%\usefonttheme{professionalfonts} %required for mathspec
+%\setsansfont[
+%    Extension      = .otf,
+%    UprightFont    = *-Light,
+%    ItalicFont     = *-LightItalic,
+%    BoldFont       = *-Regular,
+%    BoldItalicFont = *-RegularItalic
+%]{FiraSans}
+%\setmonofont[
+%    Extension   = .otf,
+%    UprightFont = *-Regular,
+%    BoldFont    = *-Medium
+%]{FiraMono}
+
+\setbeameroption{show notes on second screen=right}
+\setbeamercolor{background canvas}{bg=white}
+
+\usetheme[
+  sectionpage=progressbar,
+  numbering=fraction,
+  block=fill,
+  progressbar=foot
+]{metropolis}           % Use metropolis theme
+
+
+%%% Section page template with picture
+
+\makeatletter
+\defbeamertemplate*{section page}{mytheme}[1][]{
+  \centering
+  \begin{minipage}{22em}
+    \raggedright
+    \usebeamercolor[fg]{section title}
+    \usebeamerfont{section title}
+    \insertsectionhead\\[-1ex]
+    \usebeamertemplate*{progress bar in section page}
+    \par
+    \ifx\insertsubsectionhead\@empty\else%
+      \usebeamercolor[fg]{subsection title}%
+      \usebeamerfont{subsection title}%
+      \insertsubsectionhead
+    \fi
+    \vskip0.5cm
+    \ifstrempty{#1}{}{%
+        #1%
+    }
+  \end{minipage}
+  \par
+  \vspace{\baselineskip}
+}
+\makeatother
+
+%%% Define a command to include picture in section,
+%%% make section, and revert to old template
+
+\newcommand{\sectionpic}[2]{
+   \setbeamertemplate{section page}[mytheme][#2]
+   \section{#1}
+   \setbeamertemplate{section page}[mytheme]
+}
+
+\definecolor{fc}{HTML}{1E90FF}
+\definecolor{h}{HTML}{228B22}
+\definecolor{bias}{HTML}{87CEFA}
+\definecolor{noise}{HTML}{8B008B}
+\definecolor{conv}{HTML}{FFA500}
+\definecolor{pool}{HTML}{B22222}
+\definecolor{up}{HTML}{B22222}
+\definecolor{view}{HTML}{FFFFFF}
+\definecolor{bn}{HTML}{FFD700}
+\tikzset{fc/.style={black,draw=black,fill=fc,rectangle,minimum height=1cm}}
+\tikzset{h/.style={black,draw=black,fill=h,rectangle,minimum height=1cm}}
+\tikzset{bias/.style={black,draw=black,fill=bias,rectangle,minimum height=1cm}}
+\tikzset{noise/.style={black,draw=black,fill=noise,rectangle,minimum height=1cm}}
+\tikzset{conv/.style={black,draw=black,fill=conv,rectangle,minimum height=1cm}}
+\tikzset{pool/.style={black,draw=black,fill=pool,rectangle,minimum height=1cm}}
+\tikzset{up/.style={black,draw=black,fill=up,rectangle,minimum height=1cm}}
+\tikzset{view/.style={black,draw=black,fill=view,rectangle,minimum height=1cm}}
+\tikzset{bn/.style={black,draw=black,fill=bn,rectangle,minimum height=1cm}}
+
+
+%% enable \pause in \align environments
+\makeatletter
+\let\save@measuring@true\measuring@true
+\def\measuring@true{%
+  \save@measuring@true
+  \def\beamer@sortzero##1{\beamer@ifnextcharospec{\beamer@sortzeroread{##1}}{}}%
+  \def\beamer@sortzeroread##1<##2>{}%
+  \def\beamer@finalnospec{}%
+}
+\makeatother

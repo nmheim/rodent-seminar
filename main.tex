@@ -1,0 +1,424 @@
+\documentclass{beamer}
+\input{preamble.tex}
+
+\title{Rodent - Relevant ODE identifier}
+\date{\today}
+\author{
+  Niklas Heim, Tom\'a\v s Pevn\'y , V\'aclav \v Sm\'idl\\
+}
+\institute{Artificial Intelligence Center}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Rodent}
+  \centering
+  \begin{figure}
+    \includegraphics[width=0.8\linewidth]{figs/rodent.jpg}
+  \end{figure}
+  \color{black}
+  \textbf{Rodent}: \textbf{R}elevant \textbf{o}rdinary differential equation
+  i\textbf{dent}ifier
+\end{frame}
+\note{
+  Today we will talk about rodents, which are a very investigative species,
+  just like the framework we propose for model identification.\\
+
+  Also, they are very agile on land and feel equally at home in the water, so
+  they are in many ways very similar to ODEs and their generality.
+}
+
+\begin{frame}{Chirping fusion plasmas}
+  \begin{figure}
+    \centering
+    \includegraphics[width=.8\linewidth]{figs/alfven_patch_psd.png}
+  \end{figure}
+  \begin{itemize}
+    \item scalar time-series that rarely contains \alert{Alfven modes}
+    \item Alfvens are poorly understood
+  \end{itemize}
+\end{frame} 
+\note{
+  \begin{itemize}
+    \item Alfven modes in Tokamaks
+    \item poorly understood, anomalous frequencies, in the plasma
+    \item typical problem of physicists: loads of data, few labels
+    \item Physicists are interested in finding more alfvens in their data,
+      but even better would be an \alert{interpretable/explainable} model
+  \end{itemize}
+}
+
+\begin{frame}{Chirping fusion plasmas}
+  \centering
+  \resizebox{!}{.4\textwidth}{\input{figs/exp_chirp.tex}}
+  \begin{itemize}
+    \item \alert{Model identification} of chirping modes
+    \item First step: simplify the problem $\rightarrow$ harmonic signals
+  \end{itemize}
+\end{frame} 
+
+\begin{frame}{Chirping fusion plasmas}
+  \centering
+  \resizebox{.6\textwidth}{!}{\input{figs/harmonic_samples.tex}}
+  \begin{block}{The simplified problem}
+    \begin{itemize}
+      \item Learn generating model of harmonic signals
+      \item varying frequency $\omega$ and phase $\xi_0$
+      %\item ODE: $\ddot\xi = -\omega^2 \xi$
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+
+
+\begin{frame}{Outline}
+  \begin{enumerate}
+    \item \alert{Explainability} via ODEs
+    \item \alert{Sparsity} of the ODE via \emph{Automatic Relevance Determination} (ARD)
+    \item \alert{Generative Models} for manifold learning
+  \end{enumerate}
+\end{frame}
+\note{
+  \begin{itemize}
+    \item ODE because physicists like them
+    \item sparsity for simplicity (occam's razor)
+  \end{itemize}
+}
+
+\sectionpic{Ordinary differential equations}{
+  $$
+    \frac{\partial \bm\xi}{\partial t} = f(\bm \xi, \bm\theta, t) \approx \bm W \bm\xi + \bm b
+  $$
+}
+\note{
+  \begin{itemize}
+    \item ODE: diff eq. with one variable $\xi$
+    \item we can use vectorized from to represent nth order ODE: $W\xi+b$
+    \item parameters $W$,$b$ are (almost) intuitively interpretable
+  \end{itemize}
+}
+
+\begin{frame}{Example: Harmonic oscillator}
+  \centering
+  \resizebox{!}{.4\textwidth}{\input{figs/harmonic_samples.tex}}
+  \begin{minipage}{.49\textwidth}
+    \begin{block}{Scalar form}
+    \begin{align*}
+      \ddot{\xi} = -\omega^2\xi
+    \end{align*}
+    \vspace{.05cm}
+    \end{block}
+  \end{minipage}
+  \begin{minipage}{.49\textwidth}
+    \begin{block}{Matrix form}
+      \begin{align*}
+        \begin{bmatrix}
+          \dot{\xi} \\ \ddot{\xi}
+        \end{bmatrix}
+        =
+        \begin{bmatrix}
+          0 & 1\\
+          -\omega^2 & 0\\
+        \end{bmatrix}
+        \begin{bmatrix}
+          \xi \\ \dot{\xi}
+        \end{bmatrix}
+        +
+        \begin{bmatrix}
+          0 \\ 0
+        \end{bmatrix}
+      \end{align*}
+    \end{block}
+  \end{minipage}
+\end{frame}
+\note{
+  \begin{itemize}
+    \item Attempt: learn right box only from \textbf{partial obs}.
+    \item that means: sparsity, $1$, $\omega$, $\xi$, $\dot\xi$
+    \item awesome toy problem! (const, spec, zeros)
+  \end{itemize}
+}
+
+\begin{frame}{Odent - VAE + ODE solver}
+  \centering
+  \def\layersep{2.6cm}
+  \begin{tikzpicture}[shorten >=1pt,->,draw=black!50, node distance=\layersep]
+    \tikzstyle{every pin edge}=[<-,shorten <=1pt]
+    \tikzstyle{neuron}=[circle,fill=black!25,minimum size=17pt,inner sep=0pt]
+    \tikzstyle{input neuron}=[neuron, fill=gray];
+    \tikzstyle{output neuron}=[neuron, fill=gray];
+    \tikzstyle{hidden neuron}=[neuron, fill=mLightBrown];
+    \tikzstyle{annot} = [text width=4em, text centered]
+  
+    % Draw the hidden layer nodes
+    \node[hidden neuron] (H-1) at (\layersep,-2cm) {$\bm W$};
+    \node[hidden neuron] (H-2) at (\layersep,-3cm) {$\bm \xi$};
+    \node[hidden neuron] (H-3) at (\layersep,-4cm) {$\bm b$};
+  
+    % Draw the output layer node
+    \foreach \name / \y in {1,...,5}
+        \node[output neuron] (O-\name) at (\layersep*2,-\y cm) {};
+  
+    % draw and connect decoder
+    \node[draw, ultra thick, rotate=90, rounded corners=8, minimum height=1.1cm, minimum width=3.5cm]
+        (odesolve) at  (\layersep+\layersep/2, -3) {ODE solver $\psi$};
+    \foreach \name / \y in {1,...,3}
+        \path (H-\name) edge (odesolve);
+    \foreach \dest in {1,...,5}
+        \path (odesolve) edge (O-\dest);
+  
+    % Annotate the last layer
+    \node[above of=O-3] (pxz) {$\bm x = \psi(\bm z)$};
+  
+    % output lines
+    \draw[-,dotted, very thick, decoration={snake, segment length=0.32cm, amplitude=0.6cm}, decorate]
+      (\layersep*2+0.5cm, -1.5) -- (\layersep*2+2cm, -1.5);
+    \draw[-,dotted, very thick, decoration={snake, segment length=1.3cm, amplitude=0.6cm}, decorate]
+      (\layersep*2+0.5cm, -3) -- (\layersep*2+2cm, -3);
+    \draw[-,dotted, very thick, decoration={snake, segment length=0.7cm, amplitude=0.6cm}, decorate]
+      (\layersep*2+0.5cm, -4.5) -- (\layersep*2+2cm, -4.5);
+
+    \note{
+      \begin{itemize}
+        \item we have harmonic samples
+        \item need params $\rightarrow$ inverse mapping!
+        \item normal AE + ODE decoder
+      \end{itemize}
+    }
+
+    \onslide<2->{
+      % Draw the input layer nodes
+      \foreach \name / \y in {1,...,5}
+      % This is the same as writing \foreach \name / \y in {1/1,2/2,3/3,4/4}
+        \node[input neuron] (I-\name) at (0,-\y) {};
+
+      % Connect every node in the input layer with every node in the
+      % hidden layer.
+      \foreach \source in {1,...,5}
+          \foreach \dest in {1,...,3}
+              \path (I-\source) edge (H-\dest);
+
+      \draw[-, very thick, decoration={snake, segment length=0.32cm, amplitude=0.6cm}, decorate]
+        (-2cm, -1.5) -- (-0.5cm, -1.5);
+      \draw[-, very thick, decoration={snake, segment length=1.3cm, amplitude=0.6cm}, decorate]
+        (-2cm, -3) -- (-0.5cm, -3);
+      \draw[-, very thick, decoration={snake, segment length=0.7cm, amplitude=0.6cm}, decorate]
+        (-2cm, -4.5) -- (-0.5cm, -4.5);
+
+      \node[above of=I-3] (pzx) {$\bm z = \phi_\theta(\bm x)$};
+    }
+    \onslide<3->{
+      \node[annot, below of=H-1] (pzx) {$\mathcal{N}(0, 1)$};
+      \node (pzxs) at (1.25,-0.44) {$+\bm \sigma_z$};
+      \node (pxzs) at (6.35,-0.44) {$+ \sigma_x$};
+    }
+  \end{tikzpicture}
+\end{frame}
+\note{
+  \begin{itemize}
+    \item traditional VAE + ODE = Odent
+    \item everything is learnt! ($\sigma_z$, $\sigma_x$, $z$, $\phi$)
+    \item like this we learn manifold (in $W,\xi,b$)
+    \item OVERPARAMETRIZE
+  \end{itemize}
+}
+
+\begin{frame}{Results - Reconstructions}
+  \centering
+  \resizebox{.7\linewidth}{!}{\input{figs/rodent_recs.tex}}
+\end{frame}
+
+\begin{frame}{Results - Latent space}
+  \resizebox{!}{.28\linewidth}{\input{figs/odent_w.tex}}
+  \resizebox{!}{.28\linewidth}{\input{figs/odent_s.tex}}
+  \resizebox{!}{.28\linewidth}{\input{figs/odent_b.tex}}
+  \color{black} % fix white text color
+  \begin{align*}
+    \begin{bmatrix}
+      \dot{\xi} \\ \ddot{\xi} \\ \dddot{\xi}
+    \end{bmatrix}
+    &=
+    \begin{bmatrix}
+      0 & 0 & 1\\
+      0 & 0 & 0\\
+      -\omega^2 & 0 & 0
+    \end{bmatrix}
+    \begin{bmatrix}
+      \xi \\ 0 \\ \dot{\xi}
+    \end{bmatrix}
+    +
+    \begin{bmatrix}
+      0 \\ 0 \\ 0
+    \end{bmatrix}
+  \end{align*}
+
+  \begin{block}{Successful model identification}
+    \textbf{But}: 1-3 irrelevent parameters remain in $\bm W$
+  \end{block}
+\end{frame}
+
+\begin{frame}{Rodent - VAE + ODE solver + ARD}
+  \centering
+  \def\layersep{2.6cm}
+  \begin{tikzpicture}[shorten >=1pt,->,draw=black!50, node distance=\layersep]
+    \tikzstyle{every pin edge}=[<-,shorten <=1pt]
+    \tikzstyle{neuron}=[circle,fill=black!25,minimum size=17pt,inner sep=0pt]
+    \tikzstyle{input neuron}=[neuron, fill=gray];
+    \tikzstyle{output neuron}=[neuron, fill=gray];
+    \tikzstyle{hidden neuron}=[neuron, fill=mLightBrown];
+    \tikzstyle{annot} = [text width=4em, text centered]
+  
+    % Draw the hidden layer nodes
+    \node[hidden neuron] (H-1) at (\layersep,-2cm) {$\bm W$};
+    \node[hidden neuron] (H-2) at (\layersep,-3cm) {$\bm \xi$};
+    \node[hidden neuron] (H-3) at (\layersep,-4cm) {$\bm b$};
+  
+    % Draw the output layer node
+    \foreach \name / \y in {1,...,5}
+        \node[output neuron] (O-\name) at (\layersep*2,-\y cm) {};
+  
+    % draw and connect decoder
+    \node[draw, ultra thick, rotate=90, rounded corners=8, minimum height=1.1cm, minimum width=3.5cm]
+        (odesolve) at  (\layersep+\layersep/2, -3) {ODE solver $\psi$};
+    \foreach \name / \y in {1,...,3}
+        \path (H-\name) edge (odesolve);
+    \foreach \dest in {1,...,5}
+        \path (odesolve) edge (O-\dest);
+  
+    % Annotate the last layer
+    \node[above of=O-3] (pxz) {$\bm x = \psi(\bm z) + \sigma_x$};
+  
+    % output lines
+    \draw[-,dotted, very thick, decoration={snake, segment length=0.32cm, amplitude=0.6cm}, decorate]
+      (\layersep*2+0.5cm, -1.5) -- (\layersep*2+2cm, -1.5);
+    \draw[-,dotted, very thick, decoration={snake, segment length=1.3cm, amplitude=0.6cm}, decorate]
+      (\layersep*2+0.5cm, -3) -- (\layersep*2+2cm, -3);
+    \draw[-,dotted, very thick, decoration={snake, segment length=0.7cm, amplitude=0.6cm}, decorate]
+      (\layersep*2+0.5cm, -4.5) -- (\layersep*2+2cm, -4.5);
+
+    % Draw the input layer nodes
+    \foreach \name / \y in {1,...,5}
+    % This is the same as writing \foreach \name / \y in {1/1,2/2,3/3,4/4}
+      \node[input neuron] (I-\name) at (0,-\y) {};
+
+    % Connect every node in the input layer with every node in the
+    % hidden layer.
+    \foreach \source in {1,...,5}
+        \foreach \dest in {1,...,3}
+            \path (I-\source) edge (H-\dest);
+
+    \draw[-, very thick, decoration={snake, segment length=0.32cm, amplitude=0.6cm}, decorate]
+      (-2cm, -1.5) -- (-0.5cm, -1.5);
+    \draw[-, very thick, decoration={snake, segment length=1.3cm, amplitude=0.6cm}, decorate]
+      (-2cm, -3) -- (-0.5cm, -3);
+    \draw[-, very thick, decoration={snake, segment length=0.7cm, amplitude=0.6cm}, decorate]
+      (-2cm, -4.5) -- (-0.5cm, -4.5);
+
+    \node[above of=I-3] (pzx) {$\bm z = \phi_\theta(\bm x) + \bm \sigma_z$};
+    \node[annot, below of=H-1] (pzx) {$\mathcal{N}(0, \lambda_z)$};
+  \end{tikzpicture}
+\end{frame}
+
+
+\note{
+  \begin{itemize}
+    \item hierarchical model
+    \item enforces sparsity
+  \end{itemize}
+  
+  I am not sure how deep to go here. is it confusing to just show the equations
+  and say that ARD is our main workhorse?
+
+ODE adds explainability. we can now identify a \alert{physics motivated}
+manifold of harmonic signals}
+
+
+\begin{frame}{Results}
+  \resizebox{!}{.28\linewidth}{\input{figs/odent_w.tex}}
+  \resizebox{!}{.28\linewidth}{\input{figs/odent_s.tex}}
+  \resizebox{!}{.28\linewidth}{\input{figs/odent_b.tex}}
+
+  \resizebox{!}{.28\linewidth}{\input{figs/rodent_w.tex}}
+  \resizebox{!}{.28\linewidth}{\input{figs/rodent_s.tex}}
+  \resizebox{!}{.28\linewidth}{\input{figs/rodent_b.tex}}
+\end{frame}
+
+
+\begin{frame}{Results}
+  \centering
+  \resizebox{\linewidth}{!}{\input{figs/conv_scores.tex}}
+\end{frame}
+
+
+\begin{frame}{Reidentification}
+  \begin{minipage}{.49\textwidth}
+    \color{black}
+    \begin{itemize}
+      \item Starting point: $\bm z = \phi(x)$
+      \item Fix irrelevant parameters
+      \item Continue optimizing $|\psi(\bm z) - \bm x|^2$
+    \end{itemize}
+  \end{minipage}
+  \begin{minipage}{.49\textwidth}
+  \def\layersep{2.6cm}
+  \begin{tikzpicture}[shorten >=1pt,->,draw=black!50, node distance=\layersep]
+    \tikzstyle{every pin edge}=[<-,shorten <=1pt]
+    \tikzstyle{neuron}=[circle,fill=black!25,minimum size=17pt,inner sep=0pt]
+    \tikzstyle{input neuron}=[neuron, fill=gray];
+    \tikzstyle{output neuron}=[neuron, fill=gray];
+    \tikzstyle{hidden neuron}=[neuron, fill=mLightBrown];
+    \tikzstyle{annot} = [text width=4em, text centered]
+  
+    % Draw the hidden layer nodes
+    \node[hidden neuron] (H-1) at (\layersep,-2cm) {$\bm W$};
+    \node[hidden neuron] (H-2) at (\layersep,-3cm) {$\bm \xi$};
+    \node[hidden neuron] (H-3) at (\layersep,-4cm) {$\bm b$};
+  
+    % Draw the output layer node
+    \foreach \name / \y in {1,...,5}
+        \node[output neuron] (O-\name) at (\layersep*2,-\y cm) {};
+  
+    % draw and connect decoder
+    \node[draw, ultra thick, rotate=90, rounded corners=8, minimum height=1.1cm, minimum width=3.5cm]
+        (odesolve) at  (\layersep+\layersep/2, -3) {ODE solver $\psi$};
+    \foreach \name / \y in {1,...,3}
+        \path (H-\name) edge (odesolve);
+    \foreach \dest in {1,...,5}
+        \path (odesolve) edge (O-\dest);
+  
+    % Annotate the last layer
+    \node[above of=O-3] (pxz) {$\bm \hat x = \psi(\bm z)$};
+  
+    % output lines
+    \draw[-,dotted, very thick, decoration={snake, segment length=0.32cm, amplitude=0.6cm}, decorate]
+      (\layersep*2+0.5cm, -1.5) -- (\layersep*2+2cm, -1.5);
+    \draw[-,dotted, very thick, decoration={snake, segment length=1.3cm, amplitude=0.6cm}, decorate]
+      (\layersep*2+0.5cm, -3) -- (\layersep*2+2cm, -3);
+    \draw[-,dotted, very thick, decoration={snake, segment length=0.7cm, amplitude=0.6cm}, decorate]
+      (\layersep*2+0.5cm, -4.5) -- (\layersep*2+2cm, -4.5);
+  \end{tikzpicture}
+  \end{minipage}
+\end{frame}
+
+\begin{frame}{Results}
+  \centering
+  \resizebox{\linewidth}{!}{\input{figs/conv_scores_rid.tex}}
+  \color{black}
+  \alert{Reidentification} enables far extrapolation
+\end{frame}
+
+\begin{frame}[label=conclusion, standout]{Conclusion}
+  \begin{itemize}
+    \item Identification of partially observed system
+    \item<2-> Sparse, explainable model
+    \item<3-> Good extrapolation
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[standout]{Conclusion}
+  \centering
+  Do you have data for us?
+\end{frame}
+
+\end{document}
