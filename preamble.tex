@@ -10,22 +10,22 @@
 \usepackage[charter]{mathdesign}
 
 % ubuntu fix for fira font...
-\usepackage{amsmath}
-\usepackage[no-math]{fontspec}
-\usepackage[charter]{mathdesign}
-\usefonttheme{professionalfonts} %required for mathspec
-\setsansfont[
-    Extension      = .otf,
-    UprightFont    = *-Light,
-    ItalicFont     = *-LightItalic,
-    BoldFont       = *-Regular,
-    BoldItalicFont = *-RegularItalic
-]{FiraSans}
-\setmonofont[
-    Extension   = .otf,
-    UprightFont = *-Regular,
-    BoldFont    = *-Medium
-]{FiraMono}
+% \usepackage{amsmath}
+% \usepackage[no-math]{fontspec}
+% \usepackage[charter]{mathdesign}
+% \usefonttheme{professionalfonts} %required for mathspec
+% \setsansfont[
+%     Extension      = .otf,
+%     UprightFont    = *-Light,
+%     ItalicFont     = *-LightItalic,
+%     BoldFont       = *-Regular,
+%     BoldItalicFont = *-RegularItalic
+% ]{FiraSans}
+% \setmonofont[
+%     Extension   = .otf,
+%     UprightFont = *-Regular,
+%     BoldFont    = *-Medium
+% ]{FiraMono}
 
 \setbeamercolor{background canvas}{bg=white}
 
@@ -103,3 +103,24 @@
   \def\beamer@finalnospec{}%
 }
 \makeatother
+
+% some equation stuff
+\newcommand{\half}{\frac{1}{2}}
+\renewcommand{\x}{\bm{x}}
+\newcommand{\xh}{\hat{\bm{x}}}
+\newcommand{\e}{\bm{e}}
+\newcommand{\z}{\bm{z}}
+\newcommand{\mz}{\bm{\mu}_{z}}
+\newcommand{\w}{\bm{w}}
+\newcommand{\bo}{\bm{b}}
+\newcommand{\A}{\bm{A}}
+
+\newcommand{\se}{\sigma_e}
+\newcommand{\sz}{\bm{\sigma_z}}
+\newcommand{\laz}{\bm{\lambda}_z}
+
+\newcommand{\X}{\bm{X}}
+\newcommand{\Z}{\bm{Z}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\E}[2]{\text{E}_{#1}\left[#2\right]}
+\newcommand{\KL}{\text{KL}}
