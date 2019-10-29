@@ -427,9 +427,9 @@ manifold of harmonic signals}
 
 \begin{frame}{Rodent ELBO}
   \color{black}
-  \def\baselen{2.6cm}
+  \def\baselen{3.0cm}
   \centering
-  \resizebox{.8\textwidth}{!}{
+  \resizebox{\textwidth}{!}{
     \begin{tikzpicture}[shorten >=1pt,->,draw=black!50, node distance=\baselen]
       \tikzstyle{every pin edge}=[<-,shorten <=1pt]
       \tikzstyle{neuron}=[circle,fill=black!25,minimum size=17pt,inner sep=0pt]
@@ -444,7 +444,7 @@ manifold of harmonic signals}
         \node[input neuron] (I-\name) at (-3,-\y) {};
     
       \node[draw, ultra thick, rounded corners=8, minimum width=\baselen, minimum height=1.1cm]
-        (dense) at ($(I-2) + (3,0)$) {
+        (dense) at ($(I-2) + (3,0.5)$) {
           \begin{tabular}{c}
             Dense part of $\phi_\omega$ \\ \emph{only first N steps}
           \end{tabular}
@@ -453,13 +453,13 @@ manifold of harmonic signals}
         (conv) at ($(I-4) + (3,0)$) {
           \begin{tabular}{c}
             Conv. part of $\phi_\omega$\\
-            \emph{full time series}
+            \emph{arbitrary timeseries}
           \end{tabular}
         };
     
       % Draw the hidden layer nodes
-      \node[hidden neuron] (H-1) at (2.2cm,-2.5cm) {$\bm \xi$};
-      \node[hidden neuron] (H-2) at (2.2cm,-3.5cm) {$\bm \theta$};
+      \node[hidden neuron] (H-1) at (2.6cm,-2.5cm) {$\bm \xi$};
+      \node[hidden neuron] (H-2) at (2.6cm,-3.5cm) {$\bm \theta$};
     
       % Connect input -> conv
       \foreach \source in {1,...,5}
@@ -508,7 +508,7 @@ manifold of harmonic signals}
     
       % Annotate with distributions
       \node[above of=I-3] (pzx) {$p(\bm z|\bm x)=\mathcal{N}(\bm z | \phi_\omega(\bm x), \bm\sigma_z)$};
-      \node[annot, below of=H-1] (pz) {$p(\bm z)\mathcal{N}(0, \bm \lambda_z)$};
+      \node[below of=H-1] (pz) {$p(\bm z)=\mathcal{N}(0, \bm \lambda_z)$};
       \node[above of=O-3] (pxz) {$p(\bm x|\bm z)=\mathcal{N}(\bm x | H(\psi(\bm z)), \sigma_x)$};
     \end{tikzpicture}
   }
